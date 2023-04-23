@@ -1,0 +1,58 @@
+name: AWS Lambda function deploy workflow
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-push-container:
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      ECR_URI: ${{ steps.login-ecr.outputs.registry }}/abm_git_update_bot:latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        working-directory: ./abm_git_update_bot/
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  deploy-container:
+    needs: [build-and-push-container]
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: default deploy
+        uses: appleboy/lambda-action@v0.1.9
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          function_name: ${{ secrets.FUNCTION_NAME }}
+          memory_size: 256
+          timeout: 30
+          handler: provided
+          image_uri: ${{ needs.build-and-push-container.outputs.ECR_URI }}
+          runtime: provided
+          environment: TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }},TELEGRAM_GROUP_ID=${{ secrets.TELEGRAM_GROUP_ID }},WEBHOOK_GH_SECRET=${{ secrets.WEBHOOK_GH_SECRET }}
