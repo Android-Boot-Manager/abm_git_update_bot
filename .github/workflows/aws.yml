@@ -14,7 +14,7 @@ jobs:
       ECR_URI: ${{ steps.login-ecr.outputs.registry }}/abm_git_update_bot:latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -42,7 +42,7 @@ jobs:
     environment: production
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: default deploy
         uses: appleboy/lambda-action@v0.1.9
         with:
