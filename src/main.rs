@@ -15,13 +15,13 @@
     variant_size_differences
 )]
 
-use github_webhook_message_validator::validate as validate_gh;
-use std::env;
 use aws_lambda_events::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use aws_lambda_events::encodings::Body;
+use github_webhook_message_validator::validate as validate_gh;
 use lambda_runtime::{run, service_fn, Error as LambdaError, LambdaEvent};
-use log::{info, error};
 use lazy_static::lazy_static;
+use log::{error, info};
+use std::env;
 
 lazy_static! {
     static ref WEBHOOK_SECRET: String = env::var("GITHUB_SECRET").unwrap_or_default();
@@ -49,7 +49,7 @@ fn validate(sig: &[u8], msg: &[u8]) -> Option<ApiGatewayProxyResponse> {
             multi_value_headers: Default::default(),
             body: Some(Body::from("AUTH_DENY")),
             is_base64_encoded: None,
-        })
+        });
     }
 
     None
@@ -63,12 +63,15 @@ async fn my_handler(
         .payload
         .headers
         .get("X-Hub-Signature")
-        .unwrap();
+        .unwrap_or_default();
 
     info!("AWS Request ID: {}", ctx.request_id);
 
-    if let Some(result) = validate(sig.as_bytes(), evt.payload.body.unwrap_or_default().as_bytes()) {
-        return Ok(result)
+    if let Some(result) = validate(
+        sig.as_bytes(),
+        evt.payload.body.unwrap_or_default().as_bytes(),
+    ) {
+        return Ok(result);
     }
 
     let response = ApiGatewayProxyResponse {
