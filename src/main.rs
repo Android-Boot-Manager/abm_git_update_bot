@@ -22,31 +22,29 @@ use lambda_runtime::{run, service_fn, Error as LambdaError, LambdaEvent};
 use lazy_static::lazy_static;
 use log::{error, info};
 use std::env;
-use std::convert;
+use hex::decode;
+use lambda_http::http::HeaderValue;
 
 lazy_static! {
-    static ref WEBHOOK_SECRET: String = env::var("GITHUB_SECRET").unwrap_or_default();
+    static ref WEBHOOK_SECRET: String = env::var("WEBHOOK_GH_SECRET").unwrap_or_default();
     static ref TELEGRAM_TOKEN: String = env::var("TELEGRAM_TOKEN").unwrap_or_default();
     static ref TELEGRAM_GROUP_ID: String = env::var("TELEGRAM_GROUP_ID").unwrap_or_default();
 }
 
 #[tokio::main]
 async fn main() -> Result<(), LambdaError> {
+    env_logger::init();
     let func = service_fn(my_handler);
     run(func).await?;
 
     Ok(())
 }
 
-fn validate(sig: &str, msg: &[u8]) -> Option<ApiGatewayProxyResponse> {
-    let sig_vec: Vec<u8> = convert::From::from(sig[5..].as_bytes());
-    let sig_sha: Vec<u8> = hex::decode(sig_vec)
-        .unwrap();
+fn validate(sig: &str, msg: &str) -> Option<ApiGatewayProxyResponse> {
+    let hex_sig= decode(&sig.replace("sha1=", ""))
+        .expect("Error decoding X-Hub-Signature into Hex.");
 
-    let secret: &[u8] = *&WEBHOOK_SECRET.as_bytes();
-    let result = validate_gh(secret, &sig_sha, msg);
-
-    if !result {
+    if !validate_gh(&*WEBHOOK_SECRET.as_ref(), &hex_sig, msg.as_bytes()) {
         error!("ERROR. GitHub signature invalid. Return 403.");
         return Some(ApiGatewayProxyResponse {
             status_code: 403,
@@ -64,11 +62,15 @@ async fn my_handler(
     evt: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, LambdaError> {
     let ctx = evt.context;
-    let sig = evt.payload.headers.get("X-Hub-Signature").unwrap();
+    let empty_header_value = HeaderValue::from_str("")?;
+    let sig = evt.payload.headers.get("X-Hub-Signature").unwrap_or(
+        &empty_header_value);
 
     info!("AWS Request ID: {}", ctx.request_id);
 
-    if let Some(result) = validate(sig.to_str().unwrap(), evt.payload.body.unwrap_or_default().as_bytes()) {
+    if let Some(result) = validate(&sig.to_str().unwrap_or_default(), evt.payload.body
+        .unwrap_or_default()
+        .as_str()) {
         return Ok(result);
     }
 
