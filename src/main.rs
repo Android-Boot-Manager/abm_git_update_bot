@@ -22,6 +22,7 @@ use lambda_runtime::{run, service_fn, Error as LambdaError, LambdaEvent};
 use lazy_static::lazy_static;
 use log::{error, info};
 use std::env;
+use std::convert;
 
 lazy_static! {
     static ref WEBHOOK_SECRET: String = env::var("GITHUB_SECRET").unwrap_or_default();
@@ -37,9 +38,13 @@ async fn main() -> Result<(), LambdaError> {
     Ok(())
 }
 
-fn validate(sig: &[u8], msg: &[u8]) -> Option<ApiGatewayProxyResponse> {
+fn validate(sig: &str, msg: &[u8]) -> Option<ApiGatewayProxyResponse> {
+    let sig_vec: Vec<u8> = convert::From::from(sig[5..].as_bytes());
+    let sig_sha: Vec<u8> = hex::decode(sig_vec)
+        .unwrap();
+
     let secret: &[u8] = *&WEBHOOK_SECRET.as_bytes();
-    let result = validate_gh(secret, sig, msg);
+    let result = validate_gh(secret, &sig_sha, msg);
 
     if !result {
         error!("ERROR. GitHub signature invalid. Return 403.");
@@ -59,18 +64,11 @@ async fn my_handler(
     evt: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, LambdaError> {
     let ctx = evt.context;
-    let sig = evt
-        .payload
-        .headers
-        .get("X-Hub-Signature")
-        .unwrap_or_default();
+    let sig = evt.payload.headers.get("X-Hub-Signature").unwrap();
 
     info!("AWS Request ID: {}", ctx.request_id);
 
-    if let Some(result) = validate(
-        sig.as_bytes(),
-        evt.payload.body.unwrap_or_default().as_bytes(),
-    ) {
+    if let Some(result) = validate(sig.to_str().unwrap(), evt.payload.body.unwrap_or_default().as_bytes()) {
         return Ok(result);
     }
 
