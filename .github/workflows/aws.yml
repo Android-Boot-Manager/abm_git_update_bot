@@ -32,7 +32,7 @@ jobs:
         run: cargo lambda build --release
 
       - name: Deploy Lambda function
-        run: cargo lambda deploy --env-vars=TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }},TELEGRAM_GROUP_ID=${{ secrets.TELEGRAM_GROUP_ID }},WEBHOOK_GH_SECRET=${{ secrets.WEBHOOK_GH_SECRET }}
+        run: cargo lambda deploy --env-vars TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }},TELEGRAM_GROUP_ID=${{ secrets.TELEGRAM_GROUP_ID }},WEBHOOK_GH_SECRET=${{ secrets.WEBHOOK_GH_SECRET }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
