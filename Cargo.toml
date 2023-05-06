@@ -3,6 +3,10 @@ name = "abm_git_update_bot"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.lambda.deploy]
+memory = 256
+timeout = 90
+
 [dependencies]
 lambda_runtime = "^0.8"
 serde = { version = "^1", features = ["derive"] }
