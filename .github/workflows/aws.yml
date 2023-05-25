@@ -15,7 +15,7 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-
+      
       - name: Install Zig toolchain
         uses: korandoru/setup-zig@v1
         with:
@@ -29,7 +29,7 @@ jobs:
           arch: x86_64
 
       - name: Build Lambda function.
-        run: sudo apt-get update -y && sudo apt-get install -y libssl-dev && cargo lambda build --release
+        run: cargo lambda build --release
 
       - name: Deploy Lambda function
         run: |
