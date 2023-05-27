@@ -20,5 +20,4 @@ pub struct Repository {
 pub struct Pusher {
     pub email: Option<String>,
     pub name: String,
-    pub username: String,
 }
