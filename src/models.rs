@@ -18,7 +18,6 @@ pub struct Repository {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pusher {
-    pub date: String,
     pub email: Option<String>,
     pub name: String,
     pub username: String,
