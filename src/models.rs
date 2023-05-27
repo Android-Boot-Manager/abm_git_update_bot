@@ -8,6 +8,7 @@ pub struct GithubHook {
     pub reference: String,
     pub repository: Repository,
     pub pusher: Pusher,
+    pub head_commit: HeadCommit,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -16,8 +17,15 @@ pub struct Repository {
     pub name: String,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct HeadCommit {
+    pub message: Option<String>,
+    pub author: Pusher,
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pusher {
     pub email: Option<String>,
-    pub name: String,
+    pub name: Option<String>,
+    pub username: Option<String>,
 }
