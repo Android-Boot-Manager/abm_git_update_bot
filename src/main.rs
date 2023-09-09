@@ -15,8 +15,9 @@
 )]
 
 mod models;
-
 use crate::models::*;
+
+use aws_lambda_events::http::status::StatusCode;
 use aws_lambda_events::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use aws_lambda_events::encodings::Body;
 use github_webhook_message_validator::validate as validate_gh;
@@ -49,7 +50,7 @@ fn validate(sig: &str, msg: &str) -> Option<ApiGatewayProxyResponse> {
     if !validate_gh(&*WEBHOOK_SECRET.as_ref(), &hex_sig, msg.as_bytes()) {
         error!("ERROR. GitHub signature invalid. Return 403.");
         return Some(ApiGatewayProxyResponse {
-            status_code: 403,
+            status_code: StatusCode::FORBIDDEN.as_u16() as i64,
             headers: Default::default(),
             multi_value_headers: Default::default(),
             body: Some(Body::Empty),
@@ -62,12 +63,18 @@ fn validate(sig: &str, msg: &str) -> Option<ApiGatewayProxyResponse> {
 
 fn process_webhook(payload: &str) -> Option<GithubHook> {
     let decoded: GithubHook = serde_json::from_str::<GithubHook>(&payload).unwrap();
+    let decoded = decoded.clone();
 
-    dbg!(decoded.clone());
-
-    if decoded.clone().repository.name.contains("planet_") {
+    if &decoded.repository.name.contains("planet_") {
         return None;
-    } else if decoded.clone().repository.name.contains("bot") {
+    } else if &decoded.repository.name.contains("bot") {
+        return None;
+    } else if &decoded
+        .head_commit
+        .message
+        .unwrap()
+        .contains("Update submodule")
+    {
         return None;
     }
 
@@ -93,9 +100,9 @@ async fn webhook_handler(
         return Ok(result);
     }
 
-    if process_webhook(&evt.payload.body.clone().unwrap_or_default()).is_none() {
+    if let None = process_webhook(&evt.payload.body.clone().unwrap_or_default()) {
         return Ok(ApiGatewayProxyResponse {
-            status_code: 204,
+            status_code: StatusCode::OK.as_u16() as i64,
             headers: Default::default(),
             multi_value_headers: Default::default(),
             body: None,
@@ -103,8 +110,10 @@ async fn webhook_handler(
         });
     }
 
+    // The event is worth reporting on.
+
     let response = ApiGatewayProxyResponse {
-        status_code: 201,
+        status_code: StatusCode::ACCEPTED.as_u16() as i64,
         headers: Default::default(),
         multi_value_headers: Default::default(),
         body: Some(Body::Empty),
