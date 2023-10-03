@@ -28,11 +28,6 @@ jobs:
           platform: linux
           arch: x86_64
 
-      - name: Install Zlib dependency
-        run: |
-          sudo apt-get update 
-          sudo apt-get -y install zlib1g-dev
-
       - name: Build Lambda function.
         run: cargo lambda build --release
 
