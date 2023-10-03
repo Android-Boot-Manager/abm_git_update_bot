@@ -29,9 +29,9 @@ use log::{error, info};
 use std::env;
 
 lazy_static! {
-    static ref WEBHOOK_SECRET: String = env::var("WEBHOOK_GH_SECRET").unwrap_or_default();
-    static ref TELEGRAM_TOKEN: String = env::var("TELEGRAM_TOKEN").unwrap_or_default();
-    static ref TELEGRAM_GROUP_ID: String = env::var("TELEGRAM_GROUP_ID").unwrap_or_default();
+    static ref WEBHOOK_SECRET: String = env::var("WEBHOOK_GH_SECRET").unwrap();
+    static ref TELEGRAM_TOKEN: String = env::var("TELEGRAM_TOKEN").unwrap();
+    static ref TELEGRAM_GROUP_ID: String = env::var("TELEGRAM_GROUP_ID").unwrap();
 }
 
 #[tokio::main]
