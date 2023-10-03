@@ -38,7 +38,7 @@ jobs:
 
       - name: Deploy Lambda function
         run: |
-          printf "TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}\nTELEGRAM_GROUP_ID=${{ secrets.TELEGRAM_GROUP_ID }}\nWEBHOOK_GH_SECRET=${{ secrets.WEBHOOK_GH_SECRET }}" > .env
+          printf "TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}\nTELEGRAM_GROUP_ID=${{ secrets.TELEGRAM_GROUP_ID }}\nWEBHOOK_GH_SECRET=${{ secrets.WEBHOOK_GH_SECRET }}\nRUST_LOG=info" > .env
           cargo lambda deploy --env-file .env
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
