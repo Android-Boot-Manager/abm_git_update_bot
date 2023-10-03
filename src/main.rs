@@ -65,11 +65,7 @@ fn process_webhook(payload: &str) -> Option<GithubHook> {
     let decoded: GithubHook = serde_json::from_str::<GithubHook>(&payload).unwrap();
     let decoded = decoded.clone();
 
-    if decoded.repository.name.contains("planet_") {
-        return None;
-    } else if decoded.repository.name.contains("bot") {
-        return None;
-    } else if decoded
+    if decoded.repository.name.contains("planet_") || decoded.repository.name.contains("bot") || decoded
         .head_commit
         .message
         .clone()
