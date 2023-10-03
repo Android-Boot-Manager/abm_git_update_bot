@@ -19,7 +19,6 @@ anyhow = "1.0.71"
 env_logger = "0.10.0"
 github_webhook_message_validator = "0.1.6"
 lazy_static = "1.4.0"
-curl = { version = "*", features = [ "static-curl", "static-ssl" ] }
 hex = "0.4.3"
 lambda_http = { version = "0.8.0", features = ["apigw_http"] }
 reqwest = { version = "0.11.18", features = ["json", "blocking"] }
