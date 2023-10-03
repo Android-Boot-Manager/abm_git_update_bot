@@ -3,6 +3,7 @@ name: AWS Lambda function deploy workflow
 on:
   workflow_dispatch:
   push:
+    paths: ["src/**", "Cargo.toml"]
 
 jobs:
   build-and-deploy:
