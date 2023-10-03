@@ -97,7 +97,10 @@ async fn webhook_handler(
         return Ok(result);
     }
 
+    info!("Webhook validated, signature confirmed OK.");
+
     if let None = process_webhook(&evt.payload.body.clone().unwrap_or_default()) {
+        info!("Can't act on this event - it is suppressed.");
         return Ok(ApiGatewayProxyResponse {
             status_code: StatusCode::OK.as_u16() as i64,
             headers: Default::default(),
@@ -108,6 +111,7 @@ async fn webhook_handler(
     }
 
     // The event is worth reporting on.
+    // Pass to Telegram.
 
     let response = ApiGatewayProxyResponse {
         status_code: StatusCode::ACCEPTED.as_u16() as i64,
