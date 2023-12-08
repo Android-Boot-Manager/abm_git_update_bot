@@ -111,7 +111,7 @@ async fn webhook_handler(
     }
 
     // The event is worth reporting on.
-    // Pass to Telegram.
+    // TODO: Pass on notification to Telegram.
 
     let response = ApiGatewayProxyResponse {
         status_code: StatusCode::ACCEPTED.as_u16() as i64,

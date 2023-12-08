@@ -3,30 +3,30 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct GithubHook {
+pub(crate) struct GithubHook {
     #[serde(rename = "ref")]
-    pub reference: String,
-    pub repository: Repository,
-    pub pusher: Pusher,
-    pub head_commit: Commit,
-    pub commits: Vec<Commit>,
+    pub(crate) reference: String,
+    pub(crate) repository: Repository,
+    pub(crate) pusher: Pusher,
+    pub(crate) head_commit: Commit,
+    pub(crate) commits: Vec<Commit>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct Repository {
+pub(crate) struct Repository {
     #[serde(rename = "full_name")]
-    pub name: String,
+    pub(crate) name: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct Commit {
-    pub message: Option<String>,
-    pub author: Pusher,
+pub(crate) struct Commit {
+    pub(crate) message: Option<String>,
+    pub(crate) author: Pusher,
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct Pusher {
-    pub email: Option<String>,
-    pub name: Option<String>,
-    pub username: Option<String>,
+pub(crate) struct Pusher {
+    pub(crate) email: Option<String>,
+    pub(crate) name: Option<String>,
+    pub(crate) username: Option<String>,
 }
