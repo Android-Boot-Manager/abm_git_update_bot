@@ -15,8 +15,9 @@
 )]
 
 mod models;
-use crate::models::*;
+use crate::models::GithubHook;
 
+use aws_lambda_events::http::HeaderMap;
 use aws_lambda_events::http::status::StatusCode;
 use aws_lambda_events::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use aws_lambda_events::encodings::Body;
@@ -45,14 +46,14 @@ async fn main() -> Result<(), LambdaError> {
 
 fn validate(sig: &str, msg: &str) -> Option<ApiGatewayProxyResponse> {
     let hex_sig =
-        decode(&sig.replace("sha1=", "")).expect("Error decoding X-Hub-Signature into Hex.");
+        decode(sig.replace("sha1=", "")).expect("Error decoding X-Hub-Signature into Hex.");
 
-    if !validate_gh(&*WEBHOOK_SECRET.as_ref(), &hex_sig, msg.as_bytes()) {
+    if !validate_gh(WEBHOOK_SECRET.as_ref(), &hex_sig, msg.as_bytes()) {
         error!("ERROR. GitHub signature invalid. Return 403.");
         return Some(ApiGatewayProxyResponse {
-            status_code: StatusCode::FORBIDDEN.as_u16() as i64,
-            headers: Default::default(),
-            multi_value_headers: Default::default(),
+            status_code: i64::from(StatusCode::FORBIDDEN.as_u16()),
+            headers: HeaderMap::default(),
+            multi_value_headers: HeaderMap::default(),
             body: Some(Body::Empty),
             is_base64_encoded: false,
         });
@@ -62,7 +63,7 @@ fn validate(sig: &str, msg: &str) -> Option<ApiGatewayProxyResponse> {
 }
 
 fn process_webhook(payload: &str) -> Option<GithubHook> {
-    let decoded: GithubHook = serde_json::from_str::<GithubHook>(&payload).unwrap();
+    let decoded: GithubHook = serde_json::from_str::<GithubHook>(payload).unwrap();
     let decoded = decoded.clone();
 
     if decoded.repository.name.contains("planet_") || decoded.repository.name.contains("abm_git_update_bot") || decoded
@@ -91,20 +92,20 @@ async fn webhook_handler(
     info!("AWS Request ID: {}", ctx.request_id);
 
     if let Some(result) = validate(
-        &sig.to_str().unwrap_or_default(),
-        &evt.payload.body.clone().unwrap_or_default().as_str(),
+        sig.to_str().unwrap_or_default(),
+        evt.payload.body.clone().unwrap_or_default().as_str(),
     ) {
         return Ok(result);
     }
 
     info!("Webhook validated, signature confirmed OK.");
 
-    if let None = process_webhook(&evt.payload.body.clone().unwrap_or_default()) {
+    if process_webhook(&evt.payload.body.clone().unwrap_or_default()).is_none() {
         info!("Can't act on this event - it is suppressed.");
         return Ok(ApiGatewayProxyResponse {
-            status_code: StatusCode::OK.as_u16() as i64,
-            headers: Default::default(),
-            multi_value_headers: Default::default(),
+            status_code: i64::from(StatusCode::OK.as_u16()),
+            headers: HeaderMap::default(),
+            multi_value_headers: HeaderMap::default(),
             body: None,
             is_base64_encoded: false,
         });
@@ -114,9 +115,9 @@ async fn webhook_handler(
     // TODO: Pass on notification to Telegram.
 
     let response = ApiGatewayProxyResponse {
-        status_code: StatusCode::ACCEPTED.as_u16() as i64,
-        headers: Default::default(),
-        multi_value_headers: Default::default(),
+        status_code: i64::from(StatusCode::ACCEPTED.as_u16()),
+        headers: HeaderMap::default(),
+        multi_value_headers: HeaderMap::default(),
         body: Some(Body::Empty),
         is_base64_encoded: false,
     };
