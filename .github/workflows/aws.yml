@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags: ["v*"]
-    paths: [ "src/**", "Cargo.toml" ]
+    paths: [ "src/**", "Cargo.toml", "Cargo.lock" ]
 
 jobs:
   build-and-deploy:
