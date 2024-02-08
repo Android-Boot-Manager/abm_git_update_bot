@@ -13,4 +13,5 @@
   };
 
   devcontainer.enable = true;
+  dotenv.enable = true;
 }
