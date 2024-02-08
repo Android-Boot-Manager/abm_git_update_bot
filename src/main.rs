@@ -31,9 +31,12 @@ use crate::models::GithubHook;
 mod models;
 
 lazy_static! {
-    static ref WEBHOOK_SECRET: String = env::var("WEBHOOK_GH_SECRET").unwrap();
-    static ref TELEGRAM_TOKEN: String = env::var("TELEGRAM_TOKEN").unwrap();
-    static ref TELEGRAM_GROUP_ID: String = env::var("TELEGRAM_GROUP_ID").unwrap();
+    static ref WEBHOOK_SECRET: String =
+        env::var("WEBHOOK_GH_SECRET").expect("Unable to get GH webhook secret from environment!");
+    static ref TELEGRAM_TOKEN: String =
+        env::var("TELEGRAM_TOKEN").expect("Unable to get Telegram API token from environment!");
+    static ref TELEGRAM_GROUP_ID: String = env::var("TELEGRAM_GROUP_ID")
+        .expect("Unable to get group ID for ABM Telegram group from environment!");
 }
 
 #[tokio::main]
@@ -64,7 +67,8 @@ fn validate(sig: &str, msg: &str) -> Option<ApiGatewayProxyResponse> {
 }
 
 fn process_webhook(payload: &str) -> Option<GithubHook> {
-    let decoded: GithubHook = serde_json::from_str::<GithubHook>(payload).unwrap();
+    let decoded: GithubHook = serde_json::from_str::<GithubHook>(payload)
+        .expect("Unable to decode GitHub webhook payload!");
 
     if decoded.repository.full_name.contains("planet_")
         || decoded.repository.full_name.contains("abm_git_update_bot")
@@ -72,7 +76,7 @@ fn process_webhook(payload: &str) -> Option<GithubHook> {
             .head_commit
             .message
             .as_ref()
-            .unwrap()
+            .expect("Unable to get commit message.")
             .contains("Update submodule")
     {
         return None;
@@ -90,8 +94,8 @@ async fn webhook_handler(
         .get("X-Hub-Signature")
         .expect("No GitHub signature found in headers.")
         .to_str()
-        .unwrap_or_default();
-    let body = evt.payload.body.unwrap_or_default();
+        .expect("[GH Signature]: Unable to convert to &str.");
+    let body = evt.payload.body.expect("No body passed to request.");
 
     if let Some(resp) = validate(sig, &body) {
         return Ok(resp);
