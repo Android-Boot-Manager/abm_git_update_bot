@@ -14,20 +14,21 @@
     variant_size_differences
 )]
 
-mod models;
-use crate::models::GithubHook;
+use std::env;
 
-use aws_lambda_events::http::HeaderMap;
-use aws_lambda_events::http::status::StatusCode;
 use aws_lambda_events::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use aws_lambda_events::encodings::Body;
+use aws_lambda_events::http::status::StatusCode;
+use aws_lambda_events::http::HeaderMap;
 use github_webhook_message_validator::validate as validate_gh;
 use hex::decode;
-use lambda_http::http::HeaderValue;
 use lambda_runtime::{run, service_fn, Error as LambdaError, LambdaEvent};
 use lazy_static::lazy_static;
 use log::{error, info};
-use std::env;
+
+use crate::models::GithubHook;
+
+mod models;
 
 lazy_static! {
     static ref WEBHOOK_SECRET: String = env::var("WEBHOOK_GH_SECRET").unwrap();
@@ -64,14 +65,15 @@ fn validate(sig: &str, msg: &str) -> Option<ApiGatewayProxyResponse> {
 
 fn process_webhook(payload: &str) -> Option<GithubHook> {
     let decoded: GithubHook = serde_json::from_str::<GithubHook>(payload).unwrap();
-    let decoded = decoded.clone();
 
-    if decoded.repository.name.contains("planet_") || decoded.repository.name.contains("abm_git_update_bot") || decoded
-        .head_commit
-        .message
-        .clone()
-        .unwrap()
-        .contains("Update submodule")
+    if decoded.repository.full_name.contains("planet_")
+        || decoded.repository.full_name.contains("abm_git_update_bot")
+        || decoded
+            .head_commit
+            .message
+            .as_ref()
+            .unwrap()
+            .contains("Update submodule")
     {
         return None;
     }
@@ -82,25 +84,22 @@ fn process_webhook(payload: &str) -> Option<GithubHook> {
 async fn webhook_handler(
     evt: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, LambdaError> {
-    let ctx = evt.context;
-    let empty_header_value = HeaderValue::from_str("")?;
     let sig = evt
         .payload
         .headers
         .get("X-Hub-Signature")
-        .unwrap_or(&empty_header_value);
-    info!("AWS Request ID: {}", ctx.request_id);
+        .expect("No GitHub signature found in headers.")
+        .to_str()
+        .unwrap_or_default();
+    let body = evt.payload.body.unwrap_or_default();
 
-    if let Some(result) = validate(
-        sig.to_str().unwrap_or_default(),
-        evt.payload.body.clone().unwrap_or_default().as_str(),
-    ) {
-        return Ok(result);
+    if let Some(resp) = validate(sig, &body) {
+        return Ok(resp);
     }
 
     info!("Webhook validated, signature confirmed OK.");
 
-    if process_webhook(&evt.payload.body.clone().unwrap_or_default()).is_none() {
+    if process_webhook(&body).is_none() {
         info!("Can't act on this event - it is suppressed.");
         return Ok(ApiGatewayProxyResponse {
             status_code: i64::from(StatusCode::OK.as_u16()),

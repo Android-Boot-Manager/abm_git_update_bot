@@ -6,7 +6,7 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct GithubHook {
     #[serde(rename = "ref")]
-    pub(crate) _reference: String,
+    pub(crate) reference: String,
     pub(crate) repository: Repository,
     pub(crate) pusher: Pusher,
     pub(crate) head_commit: Commit,
@@ -15,8 +15,7 @@ pub(crate) struct GithubHook {
 
 #[derive(Clone, Debug, Deserialize)]
 pub(crate) struct Repository {
-    #[serde(rename = "full_name")]
-    pub(crate) name: String,
+    pub(crate) full_name: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
