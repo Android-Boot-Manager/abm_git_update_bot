@@ -1,0 +1,10 @@
+# Devenv
+# direnv
+# pre-commit
+.devenv*
+.direnv
+.pre-commit-config.yaml
+/.dev.vars
+/node_modules
+/target
+devenv.local.nix

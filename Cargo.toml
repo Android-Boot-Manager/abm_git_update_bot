@@ -1,0 +1,25 @@
+[package]
+name = "worker-rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1.0.86"
+github_webhook_message_validator = "0.1.6"
+hex = "0.4.3"
+openssl = { version = "0.10.66", features = ["vendored"] }
+reqwest = { version = "0.12.5", features = ["json", "blocking"] }
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.121"
+telegram-bot = "0.8.0"
+thiserror = "1.0.63"
+worker = "0.0.18"
+
+[profile.release]
+opt-level = "s" # optimize for size in release builds
+lto = true
+strip = true
+codegen-units = 1
