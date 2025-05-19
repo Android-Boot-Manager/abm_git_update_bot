@@ -3,7 +3,7 @@ export type GitHubWebHook = {
 	repository: Repository;
 	pusher: Pusher;
 	head_commit: Commit;
-	commits: Commits[];
+	commits: Commit[];
 };
 
 export type Repository = {
