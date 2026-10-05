@@ -1,22 +1,22 @@
 export type GitHubWebHook = {
-	ref: string;
-	repository: Repository;
-	pusher: Pusher;
-	head_commit: Commit;
-	commits: Commit[];
-};
+  ref: string
+  repository: Repository
+  pusher: Pusher
+  head_commit: Commit
+  commits: Commit[]
+}
 
 export type Repository = {
-	full_name: string;
-};
+  full_name: string
+}
 
 export type Commit = {
-	message: string;
-	author: Pusher;
-};
+  message: string
+  author: Pusher
+}
 
 export type Pusher = {
-	email: string;
-	name: string;
-	username: string;
-};
+  email: string
+  name: string
+  username: string
+}
