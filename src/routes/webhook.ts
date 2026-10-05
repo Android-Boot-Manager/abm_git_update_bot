@@ -1,14 +1,14 @@
-import { Hono } from "hono";
+import { Hono } from 'hono'
 
-const app = new Hono();
+const app = new Hono()
 
-app.post("/", async (c) => {
-  const { text } = await c.req.parseBody();
-  if (typeof text !== "string") {
-    return c.forbidden();
+app.post('/', async (c) => {
+  const { text } = await c.req.parseBody()
+  if (typeof text !== 'string') {
+    return c.text('Forbidden', 403)
   }
 
-  return c.forbidden();
+  return c.text('Forbidden', 403)
 })
 
-export default app;
+export default app
