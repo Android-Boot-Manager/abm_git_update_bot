@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
 import { findChannelForOrg, loadConfig } from '../config'
-import { formatPushEvent, orgFromRepoFullName } from '../github/push_event'
+import { orgFromRepoFullName } from '../github/repo'
+import { formatEvent, resolveEventKind } from '../github/resolve_event'
 import { verifySignature } from '../github/signature'
-import type { GitHubWebHook } from '../github_types'
+import type { Repository } from '../github_types'
 import { TelegramNotifier } from '../notifiers/telegram'
 
 const app = new Hono<{ Bindings: CloudflareBindings }>()
@@ -16,11 +17,12 @@ app.post('/', async (c) => {
     return c.text('Forbidden', 403)
   }
 
-  if (c.req.header('X-GitHub-Event') !== 'push') {
+  const payload = JSON.parse(rawBody) as { repository: Repository }
+  const eventKind = resolveEventKind(c.req.header('X-GitHub-Event'), payload)
+  if (!eventKind || !config.enabledEvents.has(eventKind)) {
     return c.body(null, 202)
   }
 
-  const payload = JSON.parse(rawBody) as GitHubWebHook
   const org = orgFromRepoFullName(payload.repository.full_name)
   const channel = findChannelForOrg(config, org)
   if (!channel) {
@@ -28,7 +30,7 @@ app.post('/', async (c) => {
   }
 
   const notifier = new TelegramNotifier(config.telegramBotToken)
-  await notifier.send(channel.chatId, formatPushEvent(payload))
+  await notifier.send(channel.chatId, formatEvent(eventKind, payload))
 
   return c.body(null, 204)
 })
