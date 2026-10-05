@@ -11,6 +11,7 @@
 		"enabled": true
 	},
 	"vars": {
-		"TELEGRAM_ORG_CHANNELS": "[{\"org\":\"Android-Boot-Manager\",\"chatId\":\"CHANGE_ME\"},{\"org\":\"ABM-Community-Ports\",\"chatId\":\"CHANGE_ME\"}]"
+		"TELEGRAM_ORG_CHANNELS": "[{\"org\":\"Android-Boot-Manager\",\"chatId\":\"CHANGE_ME\"},{\"org\":\"ABM-Community-Ports\",\"chatId\":\"CHANGE_ME\"}]",
+		"ENABLED_EVENTS": "PUSH,PULL_REQUEST,CI_FAILURE"
 	}
 }

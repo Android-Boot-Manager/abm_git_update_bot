@@ -2,6 +2,7 @@
 // After adding bindings to `wrangler.jsonc`, regenerate this interface via `npm run cf-typegen`
 interface CloudflareBindings {
 	TELEGRAM_ORG_CHANNELS: string;
+	ENABLED_EVENTS: string;
 	GITHUB_WEBHOOK_SECRET: string;
 	TELEGRAM_BOT_TOKEN: string;
 }
