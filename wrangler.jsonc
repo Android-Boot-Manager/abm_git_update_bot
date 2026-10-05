@@ -9,5 +9,8 @@
 	"compatibility_date": "2025-02-14",
 	"observability": {
 		"enabled": true
+	},
+	"vars": {
+		"TELEGRAM_ORG_CHANNELS": "[{\"org\":\"Android-Boot-Manager\",\"chatId\":\"CHANGE_ME\"},{\"org\":\"ABM-Community-Ports\",\"chatId\":\"CHANGE_ME\"}]"
 	}
 }
